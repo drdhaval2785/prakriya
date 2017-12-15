@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""Create a python library which returns details about a verb form.
+
+Example
+-------
+python prakriya.py verbform [argument] [readability]
+"""
 import os.path
 import json
 import sys
@@ -21,7 +27,7 @@ def get_full_data(verbform):
     fileofinterest = 'data/json/' + verbform + '.json'
     if os.path.exists(fileofinterest):
         with open(fileofinterest, 'r') as fin:
-            return json.dumps(json.load(fin))
+            return json.dumps(json.load(fin), indent=4)
     else:
         return json.dumps({'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'})
 
@@ -38,7 +44,7 @@ def get_specific_info(verbform, argument):
         for member in tmp:
             if member not in result:
                 result.append(member)
-        return json.dumps(result)
+        return json.dumps(result, indent=4)
 
 
 def get_prakriya(verbform):
@@ -58,7 +64,7 @@ def get_prakriya(verbform):
                 for member in datum['derivation']:
                     subresult.append(sutrainfo[member['sutra_num']] + ' (' + member['sutra_num'] + ') -> ' + ','.join(member['text']))
                 result.append(subresult)
-            return json.dumps({'message': 'for machine friendly output, use /api/v0.0.1/verbform/prakriya/jsonified', 'result': result}, indent=4)
+            return json.dumps({'message': 'for machine friendly output, use `python prakriya.py verbform prakriya machine`.', 'result': result}, indent=4)
     else:
         return json.dumps({'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'})
 
@@ -109,7 +115,7 @@ def maparguments(argument):
 
 
 if __name__ == '__main__':
-    print(timestamp())
+    # print(timestamp())
     syslen = len(sys.argv)
     if syslen < 2 or syslen > 4:
         print(json.dumps({'error': 'Kindly use the following syntax. `python prakriya.py verbform [argument] [readability]`.'}))
@@ -136,4 +142,4 @@ if __name__ == '__main__':
         print(get_specific_info(verbform, argument))
     elif syslen == 2:
         print(get_full_data(verbform))
-    print(timestamp())
+    # print(timestamp())
