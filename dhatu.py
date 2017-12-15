@@ -29,13 +29,21 @@ def get_prakriya(verbform):
     """Return the specific sought for information of a given verb form.
 
     """
-    with open('data/json/' + verbform + '.json', 'r') as fin:
-        verbdata = json.load(fin)
-        data = verbdata['derivation']
-        result = []
-        for member in data:
-            result.append((member['sutra_num'], ','.join(member['text'])))
-        return jsonify(result)
+    fileofinterest = 'data/json/' + verbform + '.json'
+    if not os.path.exists('data/sutrainfo.json'):
+        return jsonify({'error': 'file data/sutrainfo.json missing. You can obtain it from https://github.com/drdhaval2785/SanskritVerb/blob/master/Data/sutrainfo.json'})
+    elif os.path.exists(fileofinterest):
+        with open(fileofinterest, 'r') as fin:
+            verbdata = json.load(fin)
+            data = verbdata['derivation']
+            result = []
+            with open('data/sutrainfo.json', 'r') as sutrafile:
+                sutrainfo = json.load(sutrafile)
+                for member in data:
+                    result.append((member['sutra_num'], sutrainfo[member['sutra_num']], ','.join(member['text'])))
+                return jsonify(result)
+    else:
+        return jsonify({'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'})
 
 
 @app.route('/api/v0.0.1/<string:verbform>/<string:argument>', methods=['GET'])
