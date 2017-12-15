@@ -1,0 +1,2 @@
+.flake8
+data/json/*.json

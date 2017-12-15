@@ -19,3 +19,8 @@
 17. api/v0.0.1/form/it_status
 18. api/v0.0.1/form/derivation
 19. api/v0.0.1/form
+
+# Problems with data
+
+1. acIkarat has data of acIkaRat. Something to do with the case sensitivity.
+2. cakAra can be generated from qukfY and kF both. Currently it is overwritten.
