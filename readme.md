@@ -22,7 +22,9 @@ v0.0.1 - Baby steps
 16. api/v0.0.1/form/it_id
 17. api/v0.0.1/form/it_status
 18. api/v0.0.1/form/derivation
-19. api/v0.0.1/form
+19. api/v0.0.1/form/prakriya
+20. api/v0.0.1/form/prakriya/machine
+21. api/v0.0.1/form
 
 # Problems with data
 
