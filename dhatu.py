@@ -42,7 +42,30 @@ def get_prakriya(verbform):
                 for member in datum['derivation']:
                     subresult.append(sutrainfo[member['sutra_num']] + ' (' + member['sutra_num'] + ') -> ' + ','.join(member['text']))
                 result.append(subresult)
-            return jsonify(result)
+            return jsonify({'message': 'for machine friendly output, use /api/v0.0.1/verbform/prakriya/jsonified', 'result': result})
+    else:
+        return jsonify({'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'})
+
+
+@app.route('/api/v0.0.1/<string:verbform>/prakriya/jsonified', methods=['GET'])
+def get_prakriya_jsonified(verbform):
+    """Return the specific sought for information of a given verb form."""
+    fileofinterest = 'data/json/' + verbform + '.json'
+    if not os.path.exists('data/sutrainfo.json'):
+        return jsonify({'error': 'file data/sutrainfo.json missing. You can obtain it from https://github.com/drdhaval2785/SanskritVerb/blob/master/Data/sutrainfo.json'})
+    elif os.path.exists(fileofinterest):
+        with open(fileofinterest, 'r') as fin:
+            verbdata = json.load(fin)
+            result = []
+            with open('data/sutrainfo.json', 'r') as sutrafile:
+                sutrainfo = json.load(sutrafile)
+            data = verbdata
+            for datum in data:
+                subresult = []
+                for member in datum['derivation']:
+                    subresult.append((sutrainfo[member['sutra_num']], member['sutra_num'], ','.join(member['text'])))
+                result.append(subresult)
+            return jsonify({'message': 'for human readable output, use /api/v0.0.1/verbform/prakriya', 'result': result})
     else:
         return jsonify({'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'})
 
