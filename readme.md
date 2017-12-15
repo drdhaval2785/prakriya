@@ -1,4 +1,8 @@
-# Requirements
+# version
+
+v0.0.1 - Baby steps
+
+# Usage
 
 1. api/v0.0.1/form/verb
 2. api/v0.0.1/form/meaning
@@ -22,5 +26,5 @@
 
 # Problems with data
 
-1. acIkarat has data of acIkaRat. Something to do with the case sensitivity.
-2. cakAra can be generated from qukfY and kF both. Currently it is overwritten.
+1. acIkarat has data of acIkaRat. Something to do with the case sensitivity. #1
+2. cakAra can be generated from qukfY and kF both. Currently it is overwritten. #2
