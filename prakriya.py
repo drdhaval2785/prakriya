@@ -112,10 +112,10 @@ if __name__ == '__main__':
     print(timestamp())
     syslen = len(sys.argv)
     if syslen < 2 or syslen > 4:
-        print json.dumps({'error': 'Kindly use the following syntax. `python prakriya.py verbform [argument] [readability]`.'})
+        print(json.dumps({'error': 'Kindly use the following syntax. `python prakriya.py verbform [argument] [readability]`.'}))
         exit(0)
     elif syslen == 4 and not sys.argv[3] == 'machine':
-        print json.dumps({'error': 'The third argument can only be `machine`.'})
+        print(json.dumps({'error': 'The third argument can only be `machine`.'}))
         exit(0)
 
     if syslen >= 2:
@@ -125,6 +125,9 @@ if __name__ == '__main__':
     if syslen == 4:
         readability = sys.argv[3]
 
+    if not os.path.exists('data/json/' + verbform + '.json'):
+        print(json.dumps({'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'}))
+        exit(0)
     if syslen == 4 and readability == 'machine':
         print(get_prakriya_jsonified(verbform))
     elif syslen == 3 and argument == 'prakriya':
