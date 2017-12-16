@@ -9,15 +9,20 @@ email - drdhaval2785@gmail.com
 """
 from flask import Flask, jsonify
 from flask_restplus import Api, Resource
+from flask_cors import CORS
 import os
 import json
 
 
 app = Flask(__name__)
-api = Api(app)
+CORS(app)
+apiversion = 'v0.0.1'
+api = Api(app, version=apiversion, title=u'Prakriyāpradarśinī API', description='Describes step by step verb form generation according to Paninian grammar.')
+storagedirectory = '/var/www/html/sanskritworldflask/'
+# storagedirectory = '/var/www/html/prakriya/'
 
 
-@api.route('/v0.0.2/<string:verbform>')
+@api.route('/' + apiversion + '/<string:verbform>')
 class FullData(Resource):
     """Return the whole data regarding given verb form.
 
@@ -37,7 +42,7 @@ class FullData(Resource):
             return {'uris': uris, 'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'}
 
 
-@api.route('/v0.0.2/<string:verbform>/prakriya')
+@api.route('/' + apiversion + '/<string:verbform>/prakriya')
 class GetPrakriya(Resource):
     """Return human readable derivation of a given verb form."""
 
@@ -45,13 +50,13 @@ class GetPrakriya(Resource):
         """Return human readable derivation of a given verb form."""
         fileofinterest = filepath(verbform)
         uris = giveuris(verbform)
-        if not os.path.exists(os.path.abspath('data/sutrainfo.json')):
+        if not os.path.exists(storagedirectory + 'data/sutrainfo.json'):
             return {'error': 'file data/sutrainfo.json missing. You can obtain it from https://github.com/drdhaval2785/SanskritVerb/blob/master/Data/sutrainfo.json'}
         elif os.path.exists(fileofinterest):
             with open(fileofinterest, 'r') as fin:
                 verbdata = json.load(fin)
                 result = []
-                with open(os.path.abspath('data/sutrainfo.json'), 'r') as sutrafile:
+                with open(storagedirectory + 'data/sutrainfo.json', 'r') as sutrafile:
                     sutrainfo = json.load(sutrafile)
                 data = verbdata
                 for datum in data:
@@ -64,7 +69,7 @@ class GetPrakriya(Resource):
             return {'uris': uris, 'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'}
 
 
-@api.route('/v0.0.2/<string:verbform>/prakriya/machine')
+@api.route('/' + apiversion + '/<string:verbform>/prakriya/machine')
 class GetPrakriyaMachinified(Resource):
     """Return machine readable derivation of a given verb form."""
 
@@ -72,13 +77,13 @@ class GetPrakriyaMachinified(Resource):
         """Return machine readable derivation of a given verb form."""
         uris = giveuris(verbform)
         fileofinterest = filepath(verbform)
-        if not os.path.exists(os.path.abspath('data/sutrainfo.json')):
+        if not os.path.exists(storagedirectory + 'data/sutrainfo.json'):
             return {'error': 'file data/sutrainfo.json missing. You can obtain it from https://github.com/drdhaval2785/SanskritVerb/blob/master/Data/sutrainfo.json'}
         elif os.path.exists(fileofinterest):
             with open(fileofinterest, 'r') as fin:
                 verbdata = json.load(fin)
                 result = []
-                with open(os.path.abspath('data/sutrainfo.json'), 'r') as sutrafile:
+                with open(storagedirectory + 'data/sutrainfo.json', 'r') as sutrafile:
                     sutrainfo = json.load(sutrafile)
                 data = verbdata
                 for datum in data:
@@ -91,7 +96,7 @@ class GetPrakriyaMachinified(Resource):
             return {'uris': uris, 'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'}
 
 
-@api.route('/v0.0.2/<string:verbform>/<string:argument>')
+@api.route('/' + apiversion + '/<string:verbform>/<string:argument>')
 class SpecificInfo(Resource):
     """Return the specific sought for information of a given verb form."""
 
@@ -126,10 +131,11 @@ def not_found(error):
 
 def filepath(verbform):
     """Return absolute path of file on server."""
-    return os.path.abspath('data/json/' + verbform + '.json')
+    global storagedirectory
+    return storagedirectory + 'data/json/' + verbform + '.json'
 
 
-def giveuris(verbform='<verbform>', webserver='api.sanskritworld.in', version='v0.0.2'):
+def giveuris(verbform='<verbform>', webserver='api.sanskritworld.in', version=apiversion):
     """Give the URIs list for RESTful service."""
     uris = {'prakriya_human_readable': webserver + '/' + version + '/' + verbform + '/prakriya',
             'prakriya_machine_readable': webserver + '/' + version + '/' + verbform + '/prakriya/machine',
@@ -179,4 +185,5 @@ def maparguments(argument):
 
 
 if __name__ == '__main__':
+    # app.run(debug=True)
     app.run()
