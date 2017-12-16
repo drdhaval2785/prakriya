@@ -24,22 +24,24 @@ storagedirectory = '/var/www/html/sanskritworldflask/'
 
 @api.route('/' + apiversion + '/<string:verbform>')
 class FullData(Resource):
-    """Return the whole data regarding given verb form.
-
-    This function reads the pregenerated JSON files.
-    The files are created by the script at SanskritVerb repository.
-    See https://github.com/drdhaval2785/SanskritVerb/blob/master/jsongenerator.sh for details.
-    """
+    """Return the JSON data regarding verb information and derivation steps for given verb form."""
 
     def get(self, verbform):
-        """Return the whole data regarding given verb form."""
+        """Return the JSON data regarding verb information and derivation steps for given verb form.
+
+        This function reads the pregenerated JSON files.
+        If the JSON file exists, it is loaded back.
+        If the file is absent, an error is thrown.
+        The JSON files are created by the script at SanskritVerb repository.
+        See https://github.com/drdhaval2785/SanskritVerb/blob/master/jsongenerator.sh for details.
+        """
         uris = giveuris(verbform)
         fileofinterest = filepath(verbform)
         if os.path.exists(fileofinterest):
             with open(fileofinterest, 'r') as fin:
                 return json.load(fin)
         else:
-            return {'uris': uris, 'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'}
+            return {'uris': uris, 'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/prakriya/issues.'}
 
 
 @api.route('/' + apiversion + '/<string:verbform>/prakriya')
@@ -47,7 +49,20 @@ class GetPrakriya(Resource):
     """Return human readable derivation of a given verb form."""
 
     def get(self, verbform):
-        """Return human readable derivation of a given verb form."""
+        """Return human readable derivation of a given verb form.
+
+        This function converts the derivation data into human readable form.
+        Typical line is 'Paninian rule (rule number) -> state of the verb form'.
+        e.g. 'sArvaDAtukArDaDAtukayoH (7.3.84) -> Bo+a+tas'.
+
+        Dependencies
+
+        This function has a dependency on sutrainfo.json.
+        sutrainfo.json has sutra number, sutra text key value pairs.
+        The data stored in JSON does not have sutra text. it only has sutra number.
+        sutra text is supplied from sutrainfo.json.
+        See https://github.com/drdhaval2785/prakriya/blob/master/data/sutrainfo.json.
+        """
         fileofinterest = filepath(verbform)
         uris = giveuris(verbform)
         if not os.path.exists(storagedirectory + 'data/sutrainfo.json'):
@@ -74,7 +89,14 @@ class GetPrakriyaMachinified(Resource):
     """Return machine readable derivation of a given verb form."""
 
     def get(self, verbform):
-        """Return machine readable derivation of a given verb form."""
+        """Return machine readable derivation of a given verb form.
+
+        It is similar to the prakriya API, with only one difference.
+        prakriya API is designed to be more human readable, whereas this API is more machine readable.
+        In this API every step is returned as a tuple (sutra text, sutra number, state of verbform).
+        e.g. ("sArvaDAtukArDaDAtukayoH", "7.3.84", "Bo+a+tas").
+        c.f. 'sArvaDAtukArDaDAtukayoH (7.3.84) -> Bo+a+tas' of prakriya API.
+        """
         uris = giveuris(verbform)
         fileofinterest = filepath(verbform)
         if not os.path.exists(storagedirectory + 'data/sutrainfo.json'):
@@ -103,7 +125,41 @@ class SpecificInfo(Resource):
     def get(self, verbform, argument):
         """Return the specific sought for information of a given verb form.
 
-        Valid arguments are "jnu", "uohyd", "dhatupradipa", "it_id", "it_status", "it_sutra", "kshiratarangini", "lakara", "madhaviya", "padadecider_id", "padadecider_sutra", "upasarga", "verb", "gana", "meaning", "number", "verbslp".
+        Valid arguments and expected output are as follows.
+
+        "verb" - Return verb in Devanagari with accent marks.
+
+        "verbslp" - Return the verb in SLP1 transliteration without accent marks.
+
+        "lakara" - Return the lakAra (tense / mood) in which this form is generated.
+
+        "gana" - Return the gaNa (class) of the verb.
+
+        "meaning" - Return meaning of the verb in SLP1 transliteration.
+
+        "number" - Return number of the verb in dhAtupATha.
+
+        "madhaviya" - Return link to mAdhaviyadhAtuvRtti. http://sanskrit.uohyd.ac.in/scl/dhaatupaatha is the home page.
+
+        "kshiratarangini" - Return link to kSIrataraGgiNI. http://sanskrit.uohyd.ac.in/scl/dhaatupaatha is the home page.
+
+        "dhatupradipa" - Return link to dhAtupradIpa. http://sanskrit.uohyd.ac.in/scl/dhaatupaatha is the home page.
+
+        "jnu" - Return link to JNU site for this verb form. http://sanskrit.jnu.ac.in/tinanta/tinanta.jsp is the home page.
+
+        "uohyd" - Return link to UoHyd site for this verb form. http://sanskrit.uohyd.ac.in/cgi-bin/scl/skt_gen/verb/verb_gen.cgi is the home page.
+
+        "upasarga" - Return upasarga, if any. Currently we do not support verb forms with upasargas.
+
+        "padadecider_id" - Return the rule number which decides whether the verb is parasmaipadI, AtmanepadI or ubhayapadI.
+
+        "padadecider_sutra" - Return the rule text which decides whether the verb is parasmaipadI, AtmanepadI or ubhayapadI.
+
+        "it_id" - Returns whether the verb is seT, aniT or veT, provided the form has iDAgama.
+
+        "it_status" - Returns whether the verb form has iDAgama or not. seT, veT, aniT are the output.
+
+        "it_sutra" - Returns rule number if iDAgama is caused by some special rule.
         """
         fileofinterest = filepath(verbform)
         validargs = ['jnu', 'uohyd', 'dhatupradipa', 'it_id', 'it_status', 'it_sutra', 'kshiratarangini', 'lakara', 'madhaviya', 'padadecider_id', 'padadecider_sutra', 'upasarga', 'verb', 'gana', 'meaning', 'number', 'verbslp']
