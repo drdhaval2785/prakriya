@@ -4,7 +4,18 @@
 
 Example
 -------
-python prakriya.py verbform [argument] [readability]
+CLI usage - python prakriya.py verbform [argument] [readability]
+
+Class usage -
+
+>>> from prakriya import prakriya
+>>> p = prakriya()
+>>> p['Bavati']
+>>> p['Bavati', 'prakriya']
+>>> p['Bavati', 'prakriya', 'machine']
+>>> p['Bavati', 'verb']
+
+For details of arguments, see documentation on prakriya class.
 """
 import os.path
 import json
@@ -27,7 +38,17 @@ def get_full_data(verbform):
     fileofinterest = 'data/json/' + verbform + '.json'
     if os.path.exists(fileofinterest):
         with open(fileofinterest, 'r') as fin:
-            return json.load(fin)
+            result = []
+            temp = json.load(fin)
+            # As the stored data is in list, read member of a list
+            for member in temp:
+                subresult = {}
+                # Each member is a dict. Its key can be taken as submember.
+                for submember in member:
+                    subresult[reversemaparguments(submember)] = member[submember]
+                # Append the subresult to the result list.
+                result.append(subresult)
+            return result
     else:
         return {'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'}
 
@@ -92,28 +113,58 @@ def get_prakriya_jsonified(verbform):
 
 
 class prakriya():
-    """Generate a prakriya class.
+    u"""Generate a prakriya class.
+
+    Parameters
+    ----------
+    It takes a list as parameters e.g. ['verbform', 'argument1', 'argument2']
+    verbform is a string in SLP1.
+    argument2 can only take 'machine' value, and that too only when 'argument1'
+    is 'prakriya'.
+    argument1 and argumen2 are optional.
+    When they are not provided, the whole data gets loaded back.
+    The results are always in list format.
+
+    Valid argument1 and expected output are as follows.
+    "verb" - Return verb in Devanagari with accent marks.
+    "verbslp" - Return the verb in SLP1 transliteration without accent marks.
+    "lakara" - Return the lakAra (tense / mood) in which this form is generated.
+    "gana" - Return the gaNa (class) of the verb.
+    "meaning" - Return meaning of the verb in SLP1 transliteration.
+    "number" - Return number of the verb in dhAtupATha.
+    "madhaviya" - Return link to mAdhaviyadhAtuvRtti. http://sanskrit.uohyd.ac.in/scl/dhaatupaatha is the home page.
+    "kshiratarangini" - Return link to kSIrataraGgiNI. http://sanskrit.uohyd.ac.in/scl/dhaatupaatha is the home page.
+    "dhatupradipa" - Return link to dhAtupradIpa. http://sanskrit.uohyd.ac.in/scl/dhaatupaatha is the home page.
+    "jnu" - Return link to JNU site for this verb form. http://sanskrit.jnu.ac.in/tinanta/tinanta.jsp is the home page.
+    "uohyd" - Return link to UoHyd site for this verb form. http://sanskrit.uohyd.ac.in/cgi-bin/scl/skt_gen/verb/verb_gen.cgi is the home page.
+    "upasarga" - Return upasarga, if any. Currently we do not support verb forms with upasargas.
+    "padadecider_id" - Return the rule number which decides whether the verb is parasmaipadI, AtmanepadI or ubhayapadI.
+    "padadecider_sutra" - Return the rule text which decides whether the verb is parasmaipadI, AtmanepadI or ubhayapadI.
+    "it_id" - Returns whether the verb is seT, aniT or veT, provided the form has iDAgama.
+    "it_status" - Returns whether the verb form has iDAgama or not. seT, veT, aniT are the output.
+    "it_sutra" - Returns rule number if iDAgama is caused by some special rule.
 
     Example
     -------
     >>> from prakriya import prakriya
-    >>> d = prakriya()
-    >>> d['gacCati']
-    [[u'BUvAdayo DAtavaH (1.3.1) -> gamx!', u"upadeSe'janunAsika it (1.3.2) -> gamx!", u'tasya lopaH (1.3.9) -> gam', u'laH karmaRi ca BAve cAkarmakeByaH. (3.4.69) -> gam', u'vartamAne law (3.2.123) -> gam+la!w', u'lasya (3.4.77) -> gam+la!w', u'halantyam (1.3.3) -> gam+la!w', u'tasya lopaH (1.3.9) -> gam+la!', u"upadeSe'janunAsika it (1.3.2) -> gam+la!", u'tasya lopaH (1.3.9) -> gam+l', u'tiptasJisipTasTamibvasmas tAtAMJaTAsATAMDvamiqvahimahiN (3.4.78) -> gam+tip', u'laH parasmEpadam (1.4.99) -> gam+tip', u'tiNastrIRi trIRi praTamamaDyamottamAH (1.4.101) -> gam+tip', u'tAnyekavacanadvivacanabahuvacanAnyekaSaH (1.4.102) -> gam+tip', u'Seze praTamaH (1.4.108) -> gam+tip', u'tiNSitsArvaDAtukam (3.4.113) -> gam+tip', u'kartari Sap\u200c (3.1.68) -> gam+Sap+tip', u'izugamiyamAM CaH (7.3.77) -> gaC+Sap+tip', u'tiNSitsArvaDAtukam (3.4.113) -> gaC+Sap+tip', u'laSakvatadDite (1.3.8) -> gaC+Sap+tip', u'tasya lopaH (1.3.9) -> gaC+ap+tip', u'halantyam (1.3.3) -> gaC+ap+tip', u'tasya lopaH (1.3.9) -> gaC+a+ti', u'Ce ca (6.1.73) -> gatC+a+ti', u'stoH ScunA ScuH (8.4.40) -> gacC+a+ti', u'Final form (~2) -> gacCati']]
-    >>> d['gacCati', 'verbslp']
+    >>> p = prakriya()
+    >>> p['gacCati']
+    [{'it_sutra': '', 'number': '01.1137', 'kshiratarangini': 'http://sanskrit.uohyd.ac.in/scl/dhaatupaatha/files-15-03-2017//kRi658.html', 'uohyd': 'http://sanskrit.uohyd.ac.in/cgi-bin/scl/skt_gen/verb/verb_gen.cgi?vb=gam1_gamLz_BvAxiH_gawO&prayoga=karwari&encoding=WX&upasarga=-&paxI=parasmEpaxI', 'lakara': 'law', 'meaning': 'gatO', 'jnu': 'JNU-X', 'gana': 'BvAdi', 'it_status': '', 'verbslp': 'gamx!', 'upasarga': None, 'padadecider_sutra': '', 'dhatupradipa': 'http://sanskrit.uohyd.ac.in/scl/dhaatupaatha/files-15-03-2017//XA671.html', 'padadecider_id': 'parasmEpadI', 'verb': 'ग॒मॢँ॑', 'it_id': '', 'madhaviya': 'http://sanskrit.uohyd.ac.in/scl/dhaatupaatha/files-15-03-2017//mA633.html', 'derivation': [{'style': 'pa', 'note': 0, 'text': ['gamx!'], 'sutra_num': '1.3.1'}, {'style': 'pa', 'note': 0, 'text': ['gamx!'], 'sutra_num': '1.3.2'}, {'style': 'sa', 'note': 0, 'text': ['gam'], 'sutra_num': '1.3.9'}, {'style': 'pa', 'note': 0, 'text': ['gam'], 'sutra_num': '3.4.69'}, {'style': 'sa', 'note': 0, 'text': ['gam+la!w'], 'sutra_num': '3.2.123'}, {'style': 'pa', 'note': 0, 'text': ['gam+la!w'], 'sutra_num': '3.4.77'}, {'style': 'pa', 'note': 0, 'text': ['gam+la!w'], 'sutra_num': '1.3.3'}, {'style': 'sa', 'note': 0, 'text': ['gam+la!'], 'sutra_num': '1.3.9'}, {'style': 'pa', 'note': 0, 'text': ['gam+la!'], 'sutra_num': '1.3.2'}, {'style': 'sa', 'note': 0, 'text': ['gam+l'], 'sutra_num': '1.3.9'}, {'style': 'sa', 'note': 0, 'text': ['gam+tip'], 'sutra_num': '3.4.78'}, {'style': 'pa', 'note': 0, 'text': ['gam+tip'], 'sutra_num': '1.4.99'}, {'style': 'pa', 'note': 0, 'text': ['gam+tip'], 'sutra_num': '1.4.101'}, {'style': 'pa', 'note': 0, 'text': ['gam+tip'], 'sutra_num': '1.4.102'}, {'style': 'pa', 'note': 0, 'text': ['gam+tip'], 'sutra_num': '1.4.108'}, {'style': 'pa', 'note': 0, 'text': ['gam+tip'], 'sutra_num': '3.4.113'}, {'style': 'sa', 'note': 0, 'text': ['gam+Sap+tip'], 'sutra_num': '3.1.68'}, {'style': 'sa', 'note': 0, 'text': ['gaC+Sap+tip'], 'sutra_num': '7.3.77'}, {'style': 'pa', 'note': 0, 'text': ['gaC+Sap+tip'], 'sutra_num': '3.4.113'}, {'style': 'pa', 'note': 0, 'text': ['gaC+Sap+tip'], 'sutra_num': '1.3.8'}, {'style': 'sa', 'note': 0, 'text': ['gaC+ap+tip'], 'sutra_num': '1.3.9'}, {'style': 'pa', 'note': 0, 'text': ['gaC+ap+tip'], 'sutra_num': '1.3.3'}, {'style': 'sa', 'note': 0, 'text': ['gaC+a+ti'], 'sutra_num': '1.3.9'}, {'style': 'sa', 'note': 0, 'text': ['gatC+a+ti'], 'sutra_num': '6.1.73'}, {'style': 'sa', 'note': 0, 'text': ['gacC+a+ti'], 'sutra_num': '8.4.40'}, {'style': 'sa', 'note': 0, 'text': ['gacCati'], 'sutra_num': '~2'}]}]
+    >>> p['gacCati', 'verbslp']
     [u'gamx!']
-    >>> d['gacCati', 'prakriya']
-    [[u'BUvAdayo DAtavaH (1.3.1) -> gamx!', u"upadeSe'janunAsika it (1.3.2) -> gamx!", u'tasya lopaH (1.3.9) -> gam', u'laH karmaRi ca BAve cAkarmakeByaH. (3.4.69) -> gam', u'vartamAne law (3.2.123) -> gam+la!w', u'lasya (3.4.77) -> gam+la!w', u'halantyam (1.3.3) -> gam+la!w', u'tasya lopaH (1.3.9) -> gam+la!', u"upadeSe'janunAsika it (1.3.2) -> gam+la!", u'tasya lopaH (1.3.9) -> gam+l', u'tiptasJisipTasTamibvasmas tAtAMJaTAsATAMDvamiqvahimahiN (3.4.78) -> gam+tip', u'laH parasmEpadam (1.4.99) -> gam+tip', u'tiNastrIRi trIRi praTamamaDyamottamAH (1.4.101) -> gam+tip', u'tAnyekavacanadvivacanabahuvacanAnyekaSaH (1.4.102) -> gam+tip', u'Seze praTamaH (1.4.108) -> gam+tip', u'tiNSitsArvaDAtukam (3.4.113) -> gam+tip', u'kartari Sap\u200c (3.1.68) -> gam+Sap+tip', u'izugamiyamAM CaH (7.3.77) -> gaC+Sap+tip', u'tiNSitsArvaDAtukam (3.4.113) -> gaC+Sap+tip', u'laSakvatadDite (1.3.8) -> gaC+Sap+tip', u'tasya lopaH (1.3.9) -> gaC+ap+tip', u'halantyam (1.3.3) -> gaC+ap+tip', u'tasya lopaH (1.3.9) -> gaC+a+ti', u'Ce ca (6.1.73) -> gatC+a+ti', u'stoH ScunA ScuH (8.4.40) -> gacC+a+ti', u'Final form (~2) -> gacCati']]
-    >>> d['gacCati', 'prakriya', 'machine']
-    [[(u'BUvAdayo DAtavaH', u'1.3.1', u'gamx!'), (u"upadeSe'janunAsika it", u'1.3.2', u'gamx!'), (u'tasya lopaH', u'1.3.9', u'gam'), (u'laH karmaRi ca BAve cAkarmakeByaH.', u'3.4.69', u'gam'), (u'vartamAne law', u'3.2.123', u'gam+la!w'), (u'lasya', u'3.4.77', u'gam+la!w'), (u'halantyam', u'1.3.3', u'gam+la!w'), (u'tasya lopaH', u'1.3.9', u'gam+la!'), (u"upadeSe'janunAsika it", u'1.3.2', u'gam+la!'), (u'tasya lopaH', u'1.3.9', u'gam+l'), (u'tiptasJisipTasTamibvasmas tAtAMJaTAsATAMDvamiqvahimahiN', u'3.4.78', u'gam+tip'), (u'laH parasmEpadam', u'1.4.99', u'gam+tip'), (u'tiNastrIRi trIRi praTamamaDyamottamAH', u'1.4.101', u'gam+tip'), (u'tAnyekavacanadvivacanabahuvacanAnyekaSaH', u'1.4.102', u'gam+tip'), (u'Seze praTamaH', u'1.4.108', u'gam+tip'), (u'tiNSitsArvaDAtukam', u'3.4.113', u'gam+tip'), (u'kartari Sap\u200c', u'3.1.68', u'gam+Sap+tip'), (u'izugamiyamAM CaH', u'7.3.77', u'gaC+Sap+tip'), (u'tiNSitsArvaDAtukam', u'3.4.113', u'gaC+Sap+tip'), (u'laSakvatadDite', u'1.3.8', u'gaC+Sap+tip'), (u'tasya lopaH', u'1.3.9', u'gaC+ap+tip'), (u'halantyam', u'1.3.3', u'gaC+ap+tip'), (u'tasya lopaH', u'1.3.9', u'gaC+a+ti'), (u'Ce ca', u'6.1.73', u'gatC+a+ti'), (u'stoH ScunA ScuH', u'8.4.40', u'gacC+a+ti'), (u'Final form', u'~2', u'gacCati')]]
+    >>> p['gacCati', 'prakriya']
+    [['BUvAdayo DAtavaH (1.3.1) -> gamx!', "upadeSe'janunAsika it (1.3.2) -> gamx!", 'tasya lopaH (1.3.9) -> gam', 'laH karmaRi ca BAve cAkarmakeByaH. (3.4.69) -> gam', 'vartamAne law (3.2.123) -> gam+la!w', 'lasya (3.4.77) -> gam+la!w', 'halantyam (1.3.3) -> gam+la!w', 'tasya lopaH (1.3.9) -> gam+la!', "upadeSe'janunAsika it (1.3.2) -> gam+la!", 'tasya lopaH (1.3.9) -> gam+l', 'tiptasJisipTasTamibvasmas tAtAMJaTAsATAMDvamiqvahimahiN (3.4.78) -> gam+tip', 'laH parasmEpadam (1.4.99) -> gam+tip', 'tiNastrIRi trIRi praTamamaDyamottamAH (1.4.101) -> gam+tip', 'tAnyekavacanadvivacanabahuvacanAnyekaSaH (1.4.102) -> gam+tip', 'Seze praTamaH (1.4.108) -> gam+tip', 'tiNSitsArvaDAtukam (3.4.113) -> gam+tip', 'kartari Sap\u200c (3.1.68) -> gam+Sap+tip', 'izugamiyamAM CaH (7.3.77) -> gaC+Sap+tip', 'tiNSitsArvaDAtukam (3.4.113) -> gaC+Sap+tip', 'laSakvatadDite (1.3.8) -> gaC+Sap+tip', 'tasya lopaH (1.3.9) -> gaC+ap+tip', 'halantyam (1.3.3) -> gaC+ap+tip', 'tasya lopaH (1.3.9) -> gaC+a+ti', 'Ce ca (6.1.73) -> gatC+a+ti', 'stoH ScunA ScuH (8.4.40) -> gacC+a+ti', 'Final form (~2) -> gacCati']]
+    >>> p['gacCati', 'prakriya', 'machine']
+    [[('BUvAdayo DAtavaH', '1.3.1', 'gamx!'), ("upadeSe'janunAsika it", '1.3.2', 'gamx!'), ('tasya lopaH', '1.3.9', 'gam'), ('laH karmaRi ca BAve cAkarmakeByaH.', '3.4.69', 'gam'), ('vartamAne law', '3.2.123', 'gam+la!w'), ('lasya', '3.4.77', 'gam+la!w'), ('halantyam', '1.3.3', 'gam+la!w'), ('tasya lopaH', '1.3.9', 'gam+la!'), ("upadeSe'janunAsika it", '1.3.2', 'gam+la!'), ('tasya lopaH', '1.3.9', 'gam+l'), ('tiptasJisipTasTamibvasmas tAtAMJaTAsATAMDvamiqvahimahiN', '3.4.78', 'gam+tip'), ('laH parasmEpadam', '1.4.99', 'gam+tip'), ('tiNastrIRi trIRi praTamamaDyamottamAH', '1.4.101', 'gam+tip'), ('tAnyekavacanadvivacanabahuvacanAnyekaSaH', '1.4.102', 'gam+tip'), ('Seze praTamaH', '1.4.108', 'gam+tip'), ('tiNSitsArvaDAtukam', '3.4.113', 'gam+tip'), ('kartari Sap\u200c', '3.1.68', 'gam+Sap+tip'), ('izugamiyamAM CaH', '7.3.77', 'gaC+Sap+tip'), ('tiNSitsArvaDAtukam', '3.4.113', 'gaC+Sap+tip'), ('laSakvatadDite', '1.3.8', 'gaC+Sap+tip'), ('tasya lopaH', '1.3.9', 'gaC+ap+tip'), ('halantyam', '1.3.3', 'gaC+ap+tip'), ('tasya lopaH', '1.3.9', 'gaC+a+ti'), ('Ce ca', '6.1.73', 'gatC+a+ti'), ('stoH ScunA ScuH', '8.4.40', 'gacC+a+ti'), ('Final form', '~2', 'gacCati')]]
+
     """
 
     def __getitem__(self, items):
         """Return the requested data by user."""
         readability = ''
+        argument = ''
         if isinstance(items, str):
             verbform = items
-            argument = 'prakriya'
         else:
             verbform = items[0]
             if len(items) > 1:
@@ -135,25 +186,32 @@ class prakriya():
 
 def maparguments(argument):
     """Map api friendly arguments to actual JSON keys."""
-    mapapi = {'verb': 'verb',
-              'meaning': 'meaning',
-              'number': 'number',
-              'gana': 'gana',
-              'madhaviya': 'mAdhavIya',
+    mapapi = {'madhaviya': 'mAdhavIya',
               'kshiratarangini': 'kzIratarangiNI',
               'dhatupradipa': 'dhAtupradIpa',
               'uohyd': 'UoHyd',
-              'jnu': 'jnu',
               'verbslp': 'input',
               'lakara': 'lakAra',
-              'upasarga': 'upasarga',
-              'padadecider_id': 'padadecider_id',
-              'padadecider_sutra': 'padadecider_sutra',
-              'it_id': 'it_id',
-              'it_sutra': 'it_sutra',
-              'it_status': 'it_status'
               }
-    return mapapi[argument]
+    if argument in mapapi:
+        return mapapi[argument]
+    else:
+        return argument
+
+
+def reversemaparguments(argument):
+    """Map actual JSON keys to api friendly arguments."""
+    reversemapapi = {'mAdhavIya': 'madhaviya',
+                     'kzIratarangiNI': 'kshiratarangini',
+                     'dhAtupradIpa': 'dhatupradipa',
+                     'UoHyd': 'uohyd',
+                     'input': 'verbslp',
+                     'lakAra': 'lakara',
+                     }
+    if argument in reversemapapi:
+        return reversemapapi[argument]
+    else:
+        return argument
 
 
 if __name__ == '__main__':
@@ -185,5 +243,3 @@ if __name__ == '__main__':
     elif syslen == 2:
         print(json.dumps(get_full_data(verbform), indent=4))
     # print(timestamp())
-    data = prakriya(verbform)
-    print data.verbform
