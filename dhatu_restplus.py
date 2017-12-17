@@ -23,7 +23,7 @@ storagedirectory = '/var/www/html/sanskritworldflask/'
 # storagedirectory = '/var/www/html/prakriya/'
 
 
-@api.route('/' + apiversion + '/<string:input_transliteration>/<string:verbform>')
+@api.route('/' + apiversion + '/verbforms/<string:input_transliteration>/<string:verbform>')
 @api.doc(params={'verbform': 'Verb form to be examined.', 'input_transliteration': 'devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis'})
 class FullData(Resource):
     """Return the JSON data regarding verb information and derivation steps for given verb form."""
@@ -80,7 +80,7 @@ class FullData(Resource):
             return {'uris': uris, 'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/prakriya/issues.'}
 
 
-@api.route('/' + apiversion + '/<string:input_transliteration>/<string:verbform>/prakriya')
+@api.route('/' + apiversion + '/verbforms/<string:input_transliteration>/<string:verbform>/prakriya')
 @api.doc(params={'verbform': 'Verb form to be examined.', 'input_transliteration': 'devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis'})
 class GetPrakriya(Resource):
     """Return human readable derivation of a given verb form."""
@@ -131,7 +131,7 @@ class GetPrakriya(Resource):
             return {'uris': uris, 'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/prakriya/issues.'}
 
 
-@api.route('/' + apiversion + '/<string:input_transliteration>/<string:verbform>/prakriya/machine')
+@api.route('/' + apiversion + '/verbforms/<string:input_transliteration>/<string:verbform>/prakriya/machine')
 @api.doc(params={'verbform': 'Verb form under examination.', 'input_transliteration': 'devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis'})
 class GetPrakriyaMachinified(Resource):
     """Return machine readable derivation of a given verb form."""
@@ -176,7 +176,7 @@ class GetPrakriyaMachinified(Resource):
             return {'uris': uris, 'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'}
 
 
-@api.route('/' + apiversion + '/<string:input_transliteration>/<string:verbform>/<string:argument>')
+@api.route('/' + apiversion + '/verbforms/<string:input_transliteration>/<string:verbform>/<string:argument>')
 @api.doc(params={'verbform': 'Verb form to be examined.', 'argument': 'See Implementation notes / docstring of GET method.', 'input_transliteration': 'devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis'})
 class SpecificInfo(Resource):
     """Return the specific sought for information of a given verb form."""
@@ -268,29 +268,29 @@ def filepath(verbform):
 
 def giveuris(verbform='<verbform>', webserver='https://api.sanskritworld.in', version=apiversion):
     """Give the URIs list for RESTful service."""
-    uris = {'prakriya_human_readable': webserver + '/' + version + '/input/<input_transliteration>/outout/<output_transliteration>/' + verbform + '/prakriya',
-            'prakriya_machine_readable': webserver + '/' + version + '/input/<input_transliteration>/outout/<output_transliteration>/' + verbform + '/prakriya/machine',
-            'verb_devanagari': webserver + '/' + version + '/' + verbform + '/verb',
-            'verb_meaning': webserver + '/' + version + '/' + verbform + '/meaning',
-            'verb_number': webserver + '/' + version + '/' + verbform + '/number',
-            'verb_gana': webserver + '/' + version + '/' + verbform + '/gana',
-            'purusha': webserver + '/' + version + '/' + verbform + '/purusha',
-            'vachana': webserver + '/' + version + '/' + verbform + '/vachana',
-            'suffix': webserver + '/' + version + '/' + verbform + '/suffix',
-            'madhaviyadhatuvritti_link': webserver + '/' + version + '/' + verbform + '/madhaviya',
-            'kshiratarangini_link': webserver + '/' + version + '/' + verbform + '/kshiratarangini',
-            'dhatupradipa_link': webserver + '/' + version + '/' + verbform + '/dhatupradipa',
-            'UoHyd_link': webserver + '/' + version + '/' + verbform + '/uohyd',
-            'JNU_link': webserver + '/' + version + '/' + verbform + '/jnu',
-            'verb_slp': webserver + '/' + version + '/' + verbform + '/verbslp',
-            'lakAra_or_tense': webserver + '/' + version + '/' + verbform + '/lakara',
-            'upasarga': webserver + '/' + version + '/' + verbform + '/upasarga',
-            'padadecider_id': webserver + '/' + version + '/' + verbform + '/padadecider_id',
-            'padadecider_sutra': webserver + '/' + version + '/' + verbform + '/padadecider_sutra',
-            'it_sutra': webserver + '/' + version + '/' + verbform + '/it_sutra',
-            'it_id': webserver + '/' + version + '/' + verbform + '/it_id',
-            'it_status': webserver + '/' + version + '/' + verbform + '/it_status',
-            'all_details': webserver + '/' + version + '/' + verbform,
+    uris = {'prakriya_human_readable': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/prakriya?output_transliteration=<output_transliteration>',
+            'prakriya_machine_readable': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/prakriya/machine?output_transliteration=<output_transliteration>',
+            'verb_devanagari': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/verb?output_transliteration=<output_transliteration>',
+            'verb_meaning': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/meaning?output_transliteration=<output_transliteration>',
+            'verb_number': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/number?output_transliteration=<output_transliteration>',
+            'verb_gana': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/gana?output_transliteration=<output_transliteration>',
+            'purusha': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/purusha?output_transliteration=<output_transliteration>',
+            'vachana': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/vachana?output_transliteration=<output_transliteration>',
+            'suffix': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/suffix?output_transliteration=<output_transliteration>',
+            'madhaviyadhatuvritti_link': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/madhaviya?output_transliteration=<output_transliteration>',
+            'kshiratarangini_link': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/kshiratarangini?output_transliteration=<output_transliteration>',
+            'dhatupradipa_link': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/dhatupradipa?output_transliteration=<output_transliteration>',
+            'UoHyd_link': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/uohyd?output_transliteration=<output_transliteration>',
+            'JNU_link': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/jnu?output_transliteration=<output_transliteration>',
+            'verb_slp': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/verbslp?output_transliteration=<output_transliteration>',
+            'lakAra_or_tense': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/lakara?output_transliteration=<output_transliteration>',
+            'upasarga': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/upasarga?output_transliteration=<output_transliteration>',
+            'padadecider_id': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/padadecider_id?output_transliteration=<output_transliteration>',
+            'padadecider_sutra': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/padadecider_sutra?output_transliteration=<output_transliteration>',
+            'it_sutra': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/it_sutra?output_transliteration=<output_transliteration>',
+            'it_id': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/it_id?output_transliteration=<output_transliteration>',
+            'it_status': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '/it_status?output_transliteration=<output_transliteration>',
+            'all_details': webserver + '/' + version + '/verbforms/<input_transliteration>/' + verbform + '?output_transliteration=<output_transliteration>',
             }
     return uris
 
