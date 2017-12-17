@@ -120,7 +120,7 @@ class GetPrakriya(Resource):
                     result.append(subresult)
                 return result
         else:
-            return {'uris': uris, 'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'}
+            return {'uris': uris, 'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/prakriya/issues.'}
 
 
 @api.route('/' + apiversion + '/input/<string:input_transliteration>/output/<string:output_transliteration>/<string:verbform>/prakriya/machine')
