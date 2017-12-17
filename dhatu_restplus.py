@@ -70,7 +70,7 @@ class FullData(Resource):
                         else:
                             subresult[reversemaparguments(item)] = datum[item]
                     for member in datum['derivation']:
-                        derivationlist.append((sanscript.transliterate(sutrainfo[member['sutra_num']].replace('!', '~'), input_transliteration, output_transliteration), sanscript.transliterate(member['sutra_num'].replace('~', '-'), input_transliteration, output_transliteration), sanscript.transliterate(member['text'], input_transliteration, output_transliteration)))
+                        derivationlist.append((sanscript.transliterate(sutrainfo[member['sutra_num']].replace('!', '~'), 'slp1', output_transliteration), sanscript.transliterate(member['sutra_num'].replace('~', '-'), 'slp1', output_transliteration), sanscript.transliterate(member['text'], 'slp1', output_transliteration)))
                         # subresult.append(sanscript.transliterate(sutrainfo[member['sutra_num']] + ' (' + member['sutra_num'] + ') -> ' + ','.join(member['text']), 'slp1', output_transliteration))
                     subresult['derivation'] = derivationlist
                     result.append(subresult)
@@ -169,7 +169,7 @@ class GetPrakriyaMachinified(Resource):
                 for datum in data:
                     subresult = []
                     for member in datum['derivation']:
-                        subresult.append((sanscript.transliterate(sutrainfo[member['sutra_num']], input_transliteration, output_transliteration), sanscript.transliterate(member['sutra_num'].replace('~', '-'), input_transliteration, output_transliteration), sanscript.transliterate(member['text'], input_transliteration, output_transliteration)))
+                        subresult.append((sanscript.transliterate(sutrainfo[member['sutra_num']], 'slp1', output_transliteration), sanscript.transliterate(member['sutra_num'].replace('~', '-'), 'slp1', output_transliteration), sanscript.transliterate(member['text'], 'slp1', output_transliteration)))
                     result.append(subresult)
                 return result
         else:
@@ -323,7 +323,6 @@ def reversemaparguments(jsonkey):
         return reversemapapi[jsonkey]
     else:
         return jsonkey
-
 
 
 if __name__ == '__main__':
