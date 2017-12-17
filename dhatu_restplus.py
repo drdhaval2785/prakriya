@@ -8,7 +8,7 @@ Date - 16 December 2017
 email - drdhaval2785@gmail.com
 """
 from flask import Flask, jsonify
-from flask_restplus import Api, Resource
+from flask_restplus import Api, Resource, reqparse
 from flask_cors import CORS
 import os
 import json
@@ -23,12 +23,16 @@ storagedirectory = '/var/www/html/sanskritworldflask/'
 # storagedirectory = '/var/www/html/prakriya/'
 
 
-@api.route('/' + apiversion + '/input/<string:input_transliteration>/output/<string:output_transliteration>/<string:verbform>')
-@api.doc(params={'verbform': 'Verb form to be examined.'})
+@api.route('/' + apiversion + '/<string:input_transliteration>/<string:verbform>')
+@api.doc(params={'verbform': 'Verb form to be examined.', 'input_transliteration': 'devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis'})
 class FullData(Resource):
     """Return the JSON data regarding verb information and derivation steps for given verb form."""
 
-    def get(self, verbform, input_transliteration, output_transliteration):
+    get_parser = reqparse.RequestParser()
+    get_parser.add_argument('output_transliteration', location='args', default='devanagari', help='devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis')
+
+    @api.expect(get_parser, validate=True)
+    def get(self, input_transliteration, verbform):
         """Return the JSON data regarding verb information and derivation steps for given verb form.
 
         This function reads the pregenerated JSON files.
@@ -37,6 +41,7 @@ class FullData(Resource):
         The JSON files are created by the script at SanskritVerb repository.
         See https://github.com/drdhaval2785/SanskritVerb/blob/master/jsongenerator.sh for details.
         """
+        output_transliteration = self.get_parser.parse_args()['output_transliteration']
         if input_transliteration not in ['devanagari', 'slp1', 'iast', 'hk', 'wx', 'itrans', 'kolkata', 'velthuis']:
             return {'error': 'input_transliteration can only take specified values. Check again.'}
         if output_transliteration not in ['devanagari', 'slp1', 'iast', 'hk', 'wx', 'itrans', 'kolkata', 'velthuis']:
@@ -57,16 +62,15 @@ class FullData(Resource):
                     subresult = {}
                     derivationlist = []
                     for item in datum:
-                        if item in ['gana', 'padadecider_id', 'padadecider_sutra', 'number', 'meaning', 'lakAra', 'input', 'it_status', 'it_sutra']:
-                            # Handle wrong slp1 for chandrabindu.
-                            tmp = datum[item].replace('!', '~')
-                            subresult[item] = sanscript.transliterate(tmp, 'slp1', output_transliteration)
+                        if item in ['gana', 'padadecider_id', 'padadecider_sutra', 'number', 'meaning', 'lakAra', 'input', 'it_status', 'it_sutra', 'purusha', 'vachana', 'upasarga', 'suffix']:
+                            tmp = datum[item]
+                            subresult[reversemaparguments(item)] = sanscript.transliterate(tmp, 'slp1', output_transliteration)
                         elif item == 'derivation':
                             pass
                         else:
-                            subresult[item] = datum[item]
+                            subresult[reversemaparguments(item)] = datum[item]
                     for member in datum['derivation']:
-                        derivationlist.append((sanscript.transliterate(sutrainfo[member['sutra_num']].replace('!', '~'), input_transliteration, output_transliteration), sanscript.transliterate(member['sutra_num'].replace('~', '-'), input_transliteration, output_transliteration), sanscript.transliterate(','.join(member['text']).replace('!', '~'), input_transliteration, output_transliteration)))
+                        derivationlist.append((sanscript.transliterate(sutrainfo[member['sutra_num']].replace('!', '~'), input_transliteration, output_transliteration), sanscript.transliterate(member['sutra_num'].replace('~', '-'), input_transliteration, output_transliteration), sanscript.transliterate(member['text'], input_transliteration, output_transliteration)))
                         # subresult.append(sanscript.transliterate(sutrainfo[member['sutra_num']] + ' (' + member['sutra_num'] + ') -> ' + ','.join(member['text']), 'slp1', output_transliteration))
                     subresult['derivation'] = derivationlist
                     result.append(subresult)
@@ -76,12 +80,16 @@ class FullData(Resource):
             return {'uris': uris, 'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/prakriya/issues.'}
 
 
-@api.route('/' + apiversion + '/input/<string:input_transliteration>/output/<string:output_transliteration>/<string:verbform>/prakriya')
-@api.doc(params={'verbform': 'Verb form under examination.', 'input_transliteration': 'devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis', 'output_transliteration': 'devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis'})
+@api.route('/' + apiversion + '/<string:input_transliteration>/<string:verbform>/prakriya')
+@api.doc(params={'verbform': 'Verb form to be examined.', 'input_transliteration': 'devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis'})
 class GetPrakriya(Resource):
     """Return human readable derivation of a given verb form."""
 
-    def get(self, verbform, input_transliteration, output_transliteration):
+    get_parser = reqparse.RequestParser()
+    get_parser.add_argument('output_transliteration', location='args', default='devanagari', help='devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis')
+
+    @api.expect(get_parser, validate=True)
+    def get(self, verbform, input_transliteration):
         """Return human readable derivation of a given verb form.
 
         This function converts the derivation data into human readable form.
@@ -96,6 +104,7 @@ class GetPrakriya(Resource):
         sutra text is supplied from sutrainfo.json.
         See https://github.com/drdhaval2785/prakriya/blob/master/data/sutrainfo.json.
         """
+        output_transliteration = self.get_parser.parse_args()['output_transliteration']
         if input_transliteration not in ['devanagari', 'slp1', 'iast', 'hk', 'wx', 'itrans', 'kolkata', 'velthuis']:
             return {'error': 'input_transliteration can only take specified values. Check again.'}
         if output_transliteration not in ['devanagari', 'slp1', 'iast', 'hk', 'wx', 'itrans', 'kolkata', 'velthuis']:
@@ -115,20 +124,23 @@ class GetPrakriya(Resource):
                 for datum in data:
                     subresult = []
                     for member in datum['derivation']:
-                        # subresult.append(sutrainfo[member['sutra_num']] + ' (' + member['sutra_num'] + ') -> ' + ','.join(member['text']))
-                        subresult.append(sanscript.transliterate(sutrainfo[member['sutra_num']].replace('!', '~') + ' (' + member['sutra_num'].replace('~', '-') + ') -> ' + ','.join(member['text']).replace('!', '~'), 'slp1', output_transliteration))
+                        subresult.append(sanscript.transliterate(sutrainfo[member['sutra_num']] + ' (' + member['sutra_num'].replace('~', '-') + ') -> ' + member['text'], 'slp1', output_transliteration))
                     result.append(subresult)
                 return result
         else:
             return {'uris': uris, 'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/prakriya/issues.'}
 
 
-@api.route('/' + apiversion + '/input/<string:input_transliteration>/output/<string:output_transliteration>/<string:verbform>/prakriya/machine')
-@api.doc(params={'verbform': 'Verb form under examination.', 'input_transliteration': 'devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis', 'output_transliteration': 'devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis'})
+@api.route('/' + apiversion + '/<string:input_transliteration>/<string:verbform>/prakriya/machine')
+@api.doc(params={'verbform': 'Verb form under examination.', 'input_transliteration': 'devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis'})
 class GetPrakriyaMachinified(Resource):
     """Return machine readable derivation of a given verb form."""
 
-    def get(self, verbform, input_transliteration, output_transliteration):
+    get_parser = reqparse.RequestParser()
+    get_parser.add_argument('output_transliteration', location='args', default='devanagari', help='devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis')
+
+    @api.expect(get_parser, validate=True)
+    def get(self, verbform, input_transliteration):
         """Return machine readable derivation of a given verb form.
 
         It is similar to the prakriya API, with only one difference.
@@ -137,6 +149,7 @@ class GetPrakriyaMachinified(Resource):
         e.g. ("sArvaDAtukArDaDAtukayoH", "7.3.84", "Bo+a+tas").
         c.f. 'sArvaDAtukArDaDAtukayoH (7.3.84) -> Bo+a+tas' of prakriya API.
         """
+        output_transliteration = self.get_parser.parse_args()['output_transliteration']
         if input_transliteration not in ['devanagari', 'slp1', 'iast', 'hk', 'wx', 'itrans', 'kolkata', 'velthuis']:
             return {'error': 'input_transliteration can only take specified values. Check again.'}
         if output_transliteration not in ['devanagari', 'slp1', 'iast', 'hk', 'wx', 'itrans', 'kolkata', 'velthuis']:
@@ -156,19 +169,23 @@ class GetPrakriyaMachinified(Resource):
                 for datum in data:
                     subresult = []
                     for member in datum['derivation']:
-                        subresult.append((sanscript.transliterate(sutrainfo[member['sutra_num']].replace('!', '~'), input_transliteration, output_transliteration), sanscript.transliterate(member['sutra_num'].replace('~', '-'), input_transliteration, output_transliteration), sanscript.transliterate(','.join(member['text']).replace('!', '~'), input_transliteration, output_transliteration)))
+                        subresult.append((sanscript.transliterate(sutrainfo[member['sutra_num']], input_transliteration, output_transliteration), sanscript.transliterate(member['sutra_num'].replace('~', '-'), input_transliteration, output_transliteration), sanscript.transliterate(member['text'], input_transliteration, output_transliteration)))
                     result.append(subresult)
                 return result
         else:
             return {'uris': uris, 'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'}
 
 
-@api.route('/' + apiversion + '/<string:verbform>/<string:argument>')
-@api.doc(params={'verbform': 'Verb form to be examined.', 'argument': 'See Implementation notes / docstring of GET method.'})
+@api.route('/' + apiversion + '/<string:input_transliteration>/<string:verbform>/<string:argument>')
+@api.doc(params={'verbform': 'Verb form to be examined.', 'argument': 'See Implementation notes / docstring of GET method.', 'input_transliteration': 'devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis'})
 class SpecificInfo(Resource):
     """Return the specific sought for information of a given verb form."""
 
-    def get(self, verbform, argument):
+    get_parser = reqparse.RequestParser()
+    get_parser.add_argument('output_transliteration', location='args', default='devanagari', help='devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis')
+
+    @api.expect(get_parser, validate=True)
+    def get(self, verbform, argument, input_transliteration):
         """Return the specific sought for information of a given verb form.
 
         Valid arguments and expected output are as follows.
@@ -178,6 +195,12 @@ class SpecificInfo(Resource):
         "verbslp" - Return the verb in SLP1 transliteration without accent marks.
 
         "lakara" - Return the lakAra (tense / mood) in which this form is generated.
+
+        "purusha" - Return the purusha in which this form is generated.
+
+        "suffix" - Return the suffix by which this form is generated.
+
+        "vachana" - Return the vachana in which this form is generated.
 
         "gana" - Return the gaNa (class) of the verb.
 
@@ -207,16 +230,22 @@ class SpecificInfo(Resource):
 
         "it_sutra" - Returns rule number if iDAgama is caused by some special rule.
         """
+        output_transliteration = self.get_parser.parse_args()['output_transliteration']
+        verbform = sanscript.transliterate(verbform, input_transliteration, 'slp1')
         fileofinterest = filepath(verbform)
-        validargs = ['jnu', 'uohyd', 'dhatupradipa', 'it_id', 'it_status', 'it_sutra', 'kshiratarangini', 'lakara', 'madhaviya', 'padadecider_id', 'padadecider_sutra', 'upasarga', 'verb', 'gana', 'meaning', 'number', 'verbslp']
+        validargs = ['jnu', 'uohyd', 'dhatupradipa', 'it_id', 'it_status', 'it_sutra', 'kshiratarangini', 'lakara', 'madhaviya', 'padadecider_id', 'padadecider_sutra', 'upasarga', 'verb', 'gana', 'meaning', 'number', 'verbslp', 'purusha', 'vachana', 'upasarga', 'suffix']
         if argument not in validargs:
-            return {'error': 'argument is invalid. It can take only "jnu", "uohyd", "dhatupradipa", "it_id", "it_status", "it_sutra", "kshiratarangini", "lakara", "madhaviya", "padadecider_id", "padadecider_sutra", "upasarga", "verb", "gana", "meaning", "number", "verbslp" values.'}
+            return {'error': 'argument is invalid. It can take only "jnu", "uohyd", "dhatupradipa", "it_id", "it_status", "it_sutra", "kshiratarangini", "lakara", "madhaviya", "padadecider_id", "padadecider_sutra", "upasarga", "verb", "gana", "meaning", "number", "verbslp", "purusha", "vachana", "upasarga", "suffix" values.'}
+        argument = maparguments(argument)
         with open(fileofinterest, 'r') as fin:
             verbdata = json.load(fin)
             tmp = []
             for datum in verbdata:
-                arg = maparguments(argument)
-                tmp.append(datum[arg])
+                item = datum[argument]
+                if argument in ['gana', 'padadecider_id', 'padadecider_sutra', 'number', 'meaning', 'lakAra', 'input', 'it_status', 'it_sutra', 'purusha', 'vachana', 'upasarga', 'suffix']:
+                    tmp.append(sanscript.transliterate(item, 'slp1', output_transliteration))
+                else:
+                    tmp.append(item)
             result = []
             for member in tmp:
                 if member not in result:
@@ -245,6 +274,9 @@ def giveuris(verbform='<verbform>', webserver='https://api.sanskritworld.in', ve
             'verb_meaning': webserver + '/' + version + '/' + verbform + '/meaning',
             'verb_number': webserver + '/' + version + '/' + verbform + '/number',
             'verb_gana': webserver + '/' + version + '/' + verbform + '/gana',
+            'purusha': webserver + '/' + version + '/' + verbform + '/purusha',
+            'vachana': webserver + '/' + version + '/' + verbform + '/vachana',
+            'suffix': webserver + '/' + version + '/' + verbform + '/suffix',
             'madhaviyadhatuvritti_link': webserver + '/' + version + '/' + verbform + '/madhaviya',
             'kshiratarangini_link': webserver + '/' + version + '/' + verbform + '/kshiratarangini',
             'dhatupradipa_link': webserver + '/' + version + '/' + verbform + '/dhatupradipa',
@@ -265,25 +297,33 @@ def giveuris(verbform='<verbform>', webserver='https://api.sanskritworld.in', ve
 
 def maparguments(argument):
     """Map api friendly arguments to actual JSON keys."""
-    mapapi = {'verb': 'verb',
-              'meaning': 'meaning',
-              'number': 'number',
-              'gana': 'gana',
-              'madhaviya': 'mAdhavIya',
+    mapapi = {'madhaviya': 'mAdhavIya',
               'kshiratarangini': 'kzIratarangiNI',
               'dhatupradipa': 'dhAtupradIpa',
               'uohyd': 'UoHyd',
-              'jnu': 'jnu',
               'verbslp': 'input',
               'lakara': 'lakAra',
-              'upasarga': 'upasarga',
-              'padadecider_id': 'padadecider_id',
-              'padadecider_sutra': 'padadecider_sutra',
-              'it_id': 'it_id',
-              'it_sutra': 'it_sutra',
-              'it_status': 'it_status'
               }
-    return mapapi[argument]
+    if argument in mapapi:
+        return mapapi[argument]
+    else:
+        return argument
+
+
+def reversemaparguments(jsonkey):
+    """Reversemap json keys to arguments of API."""
+    reversemapapi = {'mAdhavIya': 'madhaviya',
+                     'kzIratarangiNI': 'kshiratarangini',
+                     'dhAtupradIpa': 'dhatupradipa',
+                     'UoHyd': 'uohyd',
+                     'input': 'verbslp',
+                     'lakAra': 'lakara',
+                     }
+    if jsonkey in reversemapapi:
+        return reversemapapi[jsonkey]
+    else:
+        return jsonkey
+
 
 
 if __name__ == '__main__':
