@@ -47,3 +47,7 @@ See https://github.com/drdhaval2785/prakriya/issues/10
 11. Corrected error in candrabindu of SLP1. See https://github.com/drdhaval2785/prakriya/issues/12
 12. Started giving sUtra text for derivation in all APIs having prakriya in them. See https://github.com/drdhaval2785/prakriya/issues/13
 13. Kept the intermediate and final forms as comma separated values instead of a list. See https://github.com/drdhaval2785/prakriya/issues/14
+14. Changed the URI structure. See https://github.com/drdhaval2785/prakriya/issues/6#issuecomment-352253590
+15. Input and output encodings are now changeable. See https://github.com/drdhaval2785/prakriya/issues/9.
+16. Started using indic_transliteration package for transliteration
+
