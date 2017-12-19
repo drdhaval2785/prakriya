@@ -63,6 +63,8 @@ class FullData(Resource):
                     for item in datum:
                         if item in ['gana', 'padadecider_id', 'padadecider_sutra', 'number', 'meaning', 'lakAra', 'input', 'it_status', 'it_sutra', 'purusha', 'vachana', 'upasarga', 'suffix']:
                             tmp = datum[item]
+                            if item == 'input':
+                                tmp = tmp.replace('!', '~')
                             subresult[reversemaparguments(item)] = sanscript.transliterate(tmp, 'slp1', output_transliteration)
                         elif item == 'derivation':
                             pass
@@ -201,6 +203,8 @@ class SpecificInfo(Resource):
             for datum in verbdata:
                 item = datum[argument]
                 if argument in ['gana', 'padadecider_id', 'padadecider_sutra', 'number', 'meaning', 'lakAra', 'input', 'it_status', 'it_sutra', 'purusha', 'vachana', 'upasarga', 'suffix']:
+                    if argument == 'input':
+                        item = item.replace('!', '~')
                     tmp.append(sanscript.transliterate(item, 'slp1', output_transliteration))
                 else:
                     tmp.append(item)
