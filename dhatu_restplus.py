@@ -18,9 +18,8 @@ from indic_transliteration import sanscript
 app = Flask(__name__)
 CORS(app)
 apiversion = 'v0.0.2'
-api = Api(app, version=apiversion, title=u'Prakriyāpradarśinī API', description='Describes step by step verb form generation according to Paninian grammar.')
+api = Api(app, version=apiversion, title=u'Prakriyāpradarśinī API', description='Describes step by step verb form generation according to Paninian grammar. Please report any issues <a href="https://github.com/drdhaval2785/prakriya/issues">here</a>. For more details, please see the github projects for <a href="https://github.com/drdhaval2785/SanskritVerb">SanskritVerb</a> and <a href="https://github.com/drdhaval2785/prakriya">prakriya</a>.')
 storagedirectory = '/var/www/html/sanskritworldflask/'
-# storagedirectory = '/var/www/html/prakriya/'
 
 
 @api.route('/' + apiversion + '/verbforms/<string:input_transliteration>/<string:verbform>')
@@ -33,7 +32,7 @@ class FullData(Resource):
 
     @api.expect(get_parser, validate=True)
     def get(self, input_transliteration, verbform):
-        """Return the JSON data regarding verb information and derivation steps for given verb form.
+        """Return the verb information and derivation steps for given verb form.
 
         This function reads the pregenerated JSON files.
         If the JSON file exists, it is loaded back.
@@ -70,12 +69,13 @@ class FullData(Resource):
                         else:
                             subresult[reversemaparguments(item)] = datum[item]
                     for member in datum['derivation']:
-                        derivationlist.append({'sutra': sanscript.transliterate(sutrainfo[member['sutra_num']], 'slp1', output_transliteration), 'sutra_num': sanscript.transliterate(member['sutra_num'].replace('~', '-'), 'slp1', output_transliteration), 'form': sanscript.transliterate(member['text'], 'slp1', output_transliteration)})
-                        # subresult.append(sanscript.transliterate(sutrainfo[member['sutra_num']] + ' (' + member['sutra_num'] + ') -> ' + ','.join(member['text']), 'slp1', output_transliteration))
+                        sutratext = sanscript.transliterate(sutrainfo[member['sutra_num']], 'slp1', output_transliteration)
+                        sutranum = sanscript.transliterate(member['sutra_num'].replace('~', '-'), 'slp1', output_transliteration)
+                        form = sanscript.transliterate(member['text'].replace('@', 'u~'), 'slp1', output_transliteration)
+                        derivationlist.append({'sutra': sutratext, 'sutra_num': sutranum, 'form': form})
                     subresult['derivation'] = derivationlist
                     result.append(subresult)
-                return result
-                return json.load(fin)
+                return jsonify(result)
         else:
             return {'uris': uris, 'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/prakriya/issues.'}
 
@@ -124,54 +124,12 @@ class GetPrakriya(Resource):
                 for datum in data:
                     subresult = []
                     for member in datum['derivation']:
-                        subresult.append({'sutra': sanscript.transliterate(sutrainfo[member['sutra_num']], 'slp1', output_transliteration), 'sutra_num': sanscript.transliterate(member['sutra_num'].replace('~', '-'), 'slp1', output_transliteration), 'form': sanscript.transliterate(member['text'], 'slp1', output_transliteration)})
+                        sutratext = sanscript.transliterate(sutrainfo[member['sutra_num']], 'slp1', output_transliteration)
+                        sutranum = sanscript.transliterate(member['sutra_num'].replace('~', '-'), 'slp1', output_transliteration)
+                        form = sanscript.transliterate(member['text'].replace('@', 'u~'), 'slp1', output_transliteration)
+                        subresult.append({'sutra': sutratext, 'sutra_num': sutranum, 'form': form})
                     result.append(subresult)
-                return result
-        else:
-            return {'uris': uris, 'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/prakriya/issues.'}
-
-
-@api.route('/' + apiversion + '/verbforms/<string:input_transliteration>/<string:verbform>/prakriya/machine')
-@api.doc(params={'verbform': 'Verb form under examination.', 'input_transliteration': 'devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis'})
-class GetPrakriyaMachinified(Resource):
-    """Return machine readable derivation of a given verb form."""
-
-    get_parser = reqparse.RequestParser()
-    get_parser.add_argument('output_transliteration', location='args', default='devanagari', help='devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis')
-
-    @api.expect(get_parser, validate=True)
-    def get(self, verbform, input_transliteration):
-        """Return machine readable derivation of a given verb form.
-
-        It is similar to the prakriya API, with only one difference.
-        prakriya API is designed to be more human readable, whereas this API is more machine readable.
-        In this API every step is returned as a tuple (sutra text, sutra number, state of verbform).
-        e.g. ("sArvaDAtukArDaDAtukayoH", "7.3.84", "Bo+a+tas").
-        c.f. 'sArvaDAtukArDaDAtukayoH (7.3.84) -> Bo+a+tas' of prakriya API.
-        """
-        output_transliteration = self.get_parser.parse_args()['output_transliteration']
-        if input_transliteration not in ['devanagari', 'slp1', 'iast', 'hk', 'wx', 'itrans', 'kolkata', 'velthuis']:
-            return {'error': 'input_transliteration can only take specified values. Check again.'}
-        if output_transliteration not in ['devanagari', 'slp1', 'iast', 'hk', 'wx', 'itrans', 'kolkata', 'velthuis']:
-            return {'error': 'output_transliteration can only take specified values. Check again.'}
-        verbform = sanscript.transliterate(verbform, input_transliteration, 'slp1')
-        uris = giveuris(verbform)
-        fileofinterest = filepath(verbform)
-        if not os.path.exists(storagedirectory + 'data/sutrainfo.json'):
-            return {'error': 'file data/sutrainfo.json missing. You can obtain it from https://github.com/drdhaval2785/SanskritVerb/blob/master/Data/sutrainfo.json'}
-        elif os.path.exists(fileofinterest):
-            with open(fileofinterest, 'r') as fin:
-                verbdata = json.load(fin)
-                result = []
-                with open(storagedirectory + 'data/sutrainfo.json', 'r') as sutrafile:
-                    sutrainfo = json.load(sutrafile)
-                data = verbdata
-                for datum in data:
-                    subresult = []
-                    for member in datum['derivation']:
-                        subresult.append({'sutra': sanscript.transliterate(sutrainfo[member['sutra_num']], 'slp1', output_transliteration), 'sutra_num': sanscript.transliterate(member['sutra_num'].replace('~', '-'), 'slp1', output_transliteration), 'form': sanscript.transliterate(member['text'], 'slp1', output_transliteration)})
-                    result.append(subresult)
-                return result
+                return jsonify(result)
         else:
             return {'uris': uris, 'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/prakriya/issues.'}
 
@@ -250,7 +208,7 @@ class SpecificInfo(Resource):
             for member in tmp:
                 if member not in result:
                     result.append(member)
-            return result
+            return jsonify(result)
 
 
 @app.errorhandler(404)
