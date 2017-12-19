@@ -70,7 +70,7 @@ class FullData(Resource):
                         else:
                             subresult[reversemaparguments(item)] = datum[item]
                     for member in datum['derivation']:
-                        derivationlist.append((sanscript.transliterate(sutrainfo[member['sutra_num']].replace('!', '~'), 'slp1', output_transliteration), sanscript.transliterate(member['sutra_num'].replace('~', '-'), 'slp1', output_transliteration), sanscript.transliterate(member['text'], 'slp1', output_transliteration)))
+                        derivationlist.append({'sutra': sanscript.transliterate(sutrainfo[member['sutra_num']], 'slp1', output_transliteration), 'sutra_num': sanscript.transliterate(member['sutra_num'].replace('~', '-'), 'slp1', output_transliteration), 'form': sanscript.transliterate(member['text'], 'slp1', output_transliteration)})
                         # subresult.append(sanscript.transliterate(sutrainfo[member['sutra_num']] + ' (' + member['sutra_num'] + ') -> ' + ','.join(member['text']), 'slp1', output_transliteration))
                     subresult['derivation'] = derivationlist
                     result.append(subresult)
@@ -124,7 +124,7 @@ class GetPrakriya(Resource):
                 for datum in data:
                     subresult = []
                     for member in datum['derivation']:
-                        subresult.append(sanscript.transliterate(sutrainfo[member['sutra_num']] + ' (' + member['sutra_num'].replace('~', '-') + ') -> ' + member['text'], 'slp1', output_transliteration))
+                        subresult.append({'sutra': sanscript.transliterate(sutrainfo[member['sutra_num']], 'slp1', output_transliteration), 'sutra_num': sanscript.transliterate(member['sutra_num'].replace('~', '-'), 'slp1', output_transliteration), 'form': sanscript.transliterate(member['text'], 'slp1', output_transliteration)})
                     result.append(subresult)
                 return result
         else:
@@ -169,11 +169,11 @@ class GetPrakriyaMachinified(Resource):
                 for datum in data:
                     subresult = []
                     for member in datum['derivation']:
-                        subresult.append((sanscript.transliterate(sutrainfo[member['sutra_num']], 'slp1', output_transliteration), sanscript.transliterate(member['sutra_num'].replace('~', '-'), 'slp1', output_transliteration), sanscript.transliterate(member['text'], 'slp1', output_transliteration)))
+                        subresult.append({'sutra': sanscript.transliterate(sutrainfo[member['sutra_num']], 'slp1', output_transliteration), 'sutra_num': sanscript.transliterate(member['sutra_num'].replace('~', '-'), 'slp1', output_transliteration), 'form': sanscript.transliterate(member['text'], 'slp1', output_transliteration)})
                     result.append(subresult)
                 return result
         else:
-            return {'uris': uris, 'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'}
+            return {'uris': uris, 'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/prakriya/issues.'}
 
 
 @api.route('/' + apiversion + '/verbforms/<string:input_transliteration>/<string:verbform>/<string:argument>')
