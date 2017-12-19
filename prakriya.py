@@ -4,7 +4,7 @@
 
 Example
 -------
-CLI usage - python prakriya.py verbform [argument] [readability]
+CLI usage - python prakriya.py verbform [argument]
 
 Class usage -
 
@@ -12,7 +12,6 @@ Class usage -
 >>> p = prakriya()
 >>> p['Bavati']
 >>> p['Bavati', 'prakriya']
->>> p['Bavati', 'prakriya', 'machine']
 >>> p['Bavati', 'verb']
 
 For details of arguments, see documentation on prakriya class.
@@ -20,96 +19,9 @@ For details of arguments, see documentation on prakriya class.
 import os.path
 import json
 import sys
-import datetime
 
 
-def timestamp():
-    """Return timestamp."""
-    return datetime.datetime.now()
-
-
-def get_full_data(verbform):
-    """Return the whole data regarding given verb form.
-
-    This function reads the pregenerated JSON files.
-    The files are created by the script at SanskritVerb repository.
-    See https://github.com/drdhaval2785/SanskritVerb/blob/master/jsongenerator.sh for details.
-    """
-    fileofinterest = 'data/json/' + verbform + '.json'
-    if os.path.exists(fileofinterest):
-        with open(fileofinterest, 'r') as fin:
-            result = []
-            temp = json.load(fin)
-            # As the stored data is in list, read member of a list
-            for member in temp:
-                subresult = {}
-                # Each member is a dict. Its key can be taken as submember.
-                for submember in member:
-                    subresult[reversemaparguments(submember)] = member[submember]
-                # Append the subresult to the result list.
-                result.append(subresult)
-            return result
-    else:
-        return {'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'}
-
-
-def get_specific_info(verbform, argument):
-    """Return the specific sought for information of a given verb form."""
-    with open('data/json/' + verbform + '.json', 'r') as fin:
-        verbdata = json.load(fin)
-        tmp = []
-        for datum in verbdata:
-            arg = maparguments(argument)
-            tmp.append(datum[arg])
-        result = []
-        for member in tmp:
-            if member not in result:
-                result.append(member)
-        return result
-
-
-def get_prakriya(verbform):
-    """Return the specific sought for information of a given verb form."""
-    fileofinterest = 'data/json/' + verbform + '.json'
-    if not os.path.exists('data/sutrainfo.json'):
-        return json.dumps({'error': 'file data/sutrainfo.json missing. You can obtain it from https://github.com/drdhaval2785/SanskritVerb/blob/master/Data/sutrainfo.json'})
-    elif os.path.exists(fileofinterest):
-        with open(fileofinterest, 'r') as fin:
-            verbdata = json.load(fin)
-            result = []
-            with open('data/sutrainfo.json', 'r') as sutrafile:
-                sutrainfo = json.load(sutrafile)
-            data = verbdata
-            for datum in data:
-                subresult = []
-                for member in datum['derivation']:
-                    subresult.append(sutrainfo[member['sutra_num']] + ' (' + member['sutra_num'] + ') -> ' + ','.join(member['text']))
-                result.append(subresult)
-            return result
-    else:
-        return {'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'}
-
-
-def get_prakriya_jsonified(verbform):
-    """Return the specific sought for information of a given verb form."""
-    fileofinterest = 'data/json/' + verbform + '.json'
-    if not os.path.exists('data/sutrainfo.json'):
-        return json.dumps({'error': 'file data/sutrainfo.json missing. You can obtain it from https://github.com/drdhaval2785/SanskritVerb/blob/master/Data/sutrainfo.json'})
-    elif os.path.exists(fileofinterest):
-        with open(fileofinterest, 'r') as fin:
-            verbdata = json.load(fin)
-            result = []
-            with open('data/sutrainfo.json', 'r') as sutrafile:
-                sutrainfo = json.load(sutrafile)
-            data = verbdata
-            for datum in data:
-                subresult = []
-                for member in datum['derivation']:
-                    subresult.append((sutrainfo[member['sutra_num']], member['sutra_num'], ','.join(member['text'])))
-                result.append(subresult)
-            return result
-    else:
-        return {'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'}
+storagedirectory = '/var/www/html/sanskritworldflask/'
 
 
 class prakriya():
@@ -117,7 +29,7 @@ class prakriya():
 
     Parameters
     ----------
-    It takes a list as parameters e.g. ['verbform', 'argument1', 'argument2']
+    It takes a list as parameters e.g. ['verbform', 'argument1']
     verbform is a string in SLP1.
     argument2 can only take 'machine' value, and that too only when 'argument1'
     is 'prakriya'.
@@ -161,7 +73,6 @@ class prakriya():
 
     def __getitem__(self, items):
         """Return the requested data by user."""
-        readability = ''
         argument = ''
         if isinstance(items, str):
             verbform = items
@@ -169,77 +80,68 @@ class prakriya():
             verbform = items[0]
             if len(items) > 1:
                 argument = items[1]
-            else:
-                argument = 'prakriya'
-            if len(items) > 2 and items[2] == 'machine':
-                readability = 'machine'
-        if argument == 'prakriya' and readability == '':
-            result = get_prakriya(verbform)
-        elif argument == 'prakriya' and readability == 'machine':
-            result = get_prakriya_jsonified(verbform)
-        elif argument == '':
-            result = get_full_data(verbform)
-        elif not argument == '':
-            result = get_specific_info(verbform, argument)
+        data = get_full_data(verbform)
+        if argument == '':
+            result = data
+        else:
+            result = keepSpecific(data, argument)
         return result
 
 
-def maparguments(argument):
-    """Map api friendly arguments to actual JSON keys."""
-    mapapi = {'madhaviya': 'mAdhavIya',
-              'kshiratarangini': 'kzIratarangiNI',
-              'dhatupradipa': 'dhAtupradIpa',
-              'uohyd': 'UoHyd',
-              'verbslp': 'input',
-              'lakara': 'lakAra',
-              }
-    if argument in mapapi:
-        return mapapi[argument]
-    else:
-        return argument
+def get_full_data(verbform):
+    """Get whole data from the json file for given verb form."""
+    global storagedirectory
+    fileofinterest = storagedirectory + 'data/json/' + verbform + '.json'
+    with open(fileofinterest, 'r') as fin:
+        verbdata = json.load(fin)
+        result = []
+        with open(storagedirectory + 'data/sutrainfo.json', 'r') as sutrafile:
+            sutrainfo = json.load(sutrafile)
+        data = verbdata
+        for datum in data:
+            subresult = {}
+            derivationlist = []
+            for item in datum:
+                if item not in ['derivation', 'verb']:
+                    tmp = datum[item]
+                elif item == 'verb':
+                    tmp = datum[item]
+                    tmp = tmp.replace('!', '~')
+                subresult[item] = tmp
+            for member in datum['derivation']:
+                sutratext = sutrainfo[member['sutra_num']]
+                sutranum = member['sutra_num'].replace('~', '-')
+                form = member['form'].replace('@', 'u~')
+                derivationlist.append({'sutra': sutratext, 'sutra_num': sutranum, 'form': form})
+            subresult['prakriya'] = derivationlist
+            result.append(subresult)
+        return result
 
 
-def reversemaparguments(argument):
-    """Map actual JSON keys to api friendly arguments."""
-    reversemapapi = {'mAdhavIya': 'madhaviya',
-                     'kzIratarangiNI': 'kshiratarangini',
-                     'dhAtupradIpa': 'dhatupradipa',
-                     'UoHyd': 'uohyd',
-                     'input': 'verbslp',
-                     'lakAra': 'lakara',
-                     }
-    if argument in reversemapapi:
-        return reversemapapi[argument]
-    else:
-        return argument
+def keepSpecific(data, argument):
+    """Create a list of only the relavent argument."""
+    return [member[argument] for member in data]
 
 
 if __name__ == '__main__':
     # print(timestamp())
     syslen = len(sys.argv)
-    if syslen < 2 or syslen > 4:
-        print(json.dumps({'error': 'Kindly use the following syntax. `python prakriya.py verbform [argument] [readability]`.'}))
-        exit(0)
-    elif syslen == 4 and not sys.argv[3] == 'machine':
-        print(json.dumps({'error': 'The third argument can only be `machine`.'}))
+    if syslen < 2 or syslen > 3:
+        print(json.dumps({'error': 'Kindly use the following syntax. `python prakriya.py verbform [argument]`.'}))
         exit(0)
 
     if syslen >= 2:
         verbform = sys.argv[1]
-    if syslen >= 3:
+    if syslen == 3:
         argument = sys.argv[2]
-    if syslen == 4:
-        readability = sys.argv[3]
 
     if not os.path.exists('data/json/' + verbform + '.json'):
         print(json.dumps({'error': 'The verb form is not in our database. If you feel it deserves to be included, kindly notify us on https://github.com/drdhaval2785/sktderivation/issues.'}))
         exit(0)
-    if syslen == 4 and readability == 'machine':
-        print(json.dumps({'message': 'for human readable output, use `python prakriya.py verbform prakriya`', 'result': get_prakriya_jsonified(verbform)}, indent=4))
-    elif syslen == 3 and argument == 'prakriya':
-        print(json.dumps({'message': 'for machine friendly output, use `python prakriya.py verbform prakriya machine`.', 'result': get_prakriya(verbform)}, indent=4))
-    elif syslen == 3:
-        print(json.dumps(get_specific_info(verbform, argument), indent=4))
-    elif syslen == 2:
-        print(json.dumps(get_full_data(verbform), indent=4))
-    # print(timestamp())
+    else:
+        data = get_full_data(verbform)
+        if syslen == 2:
+            result = data
+        else:
+            result = keepSpecific(data, argument)
+        print(json.dumps(result, indent=4))

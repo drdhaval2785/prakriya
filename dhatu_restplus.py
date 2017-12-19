@@ -61,19 +61,19 @@ class FullData(Resource):
                     subresult = {}
                     derivationlist = []
                     for item in datum:
-                        if item in ['gana', 'padadecider_id', 'padadecider_sutra', 'number', 'meaning', 'lakAra', 'input', 'it_status', 'it_sutra', 'purusha', 'vachana', 'upasarga', 'suffix']:
+                        if item in ['gana', 'padadecider_id', 'padadecider_sutra', 'number', 'meaning', 'lakara', 'verb', 'it_status', 'it_sutra', 'purusha', 'vachana', 'upasarga', 'suffix']:
                             tmp = datum[item]
-                            if item == 'input':
+                            if item == 'verb':
                                 tmp = tmp.replace('!', '~')
-                            subresult[reversemaparguments(item)] = sanscript.transliterate(tmp, 'slp1', output_transliteration)
+                            subresult[item] = sanscript.transliterate(tmp, 'slp1', output_transliteration)
                         elif item == 'derivation':
                             pass
                         else:
-                            subresult[reversemaparguments(item)] = datum[item]
+                            subresult[item] = datum[item]
                     for member in datum['derivation']:
                         sutratext = sanscript.transliterate(sutrainfo[member['sutra_num']], 'slp1', output_transliteration)
                         sutranum = sanscript.transliterate(member['sutra_num'].replace('~', '-'), 'slp1', output_transliteration)
-                        form = sanscript.transliterate(member['text'].replace('@', 'u~'), 'slp1', output_transliteration)
+                        form = sanscript.transliterate(member['form'].replace('@', 'u~'), 'slp1', output_transliteration)
                         derivationlist.append({'sutra': sutratext, 'sutra_num': sutranum, 'form': form})
                     subresult['derivation'] = derivationlist
                     result.append(subresult)
@@ -150,9 +150,9 @@ class SpecificInfo(Resource):
 
         Valid arguments and expected output are as follows.
 
-        "verb" - Return verb in Devanagari with accent marks.
+        "verb" - Return verb in Devanagari without accent marks.
 
-        "verbslp" - Return the verb in SLP1 transliteration without accent marks.
+        "verbaccent" - Return the verb with accent marks. This item is not changed irrespective of transliteration choices.
 
         "lakara" - Return the lakAra (tense / mood) in which this form is generated.
 
@@ -193,17 +193,16 @@ class SpecificInfo(Resource):
         output_transliteration = self.get_parser.parse_args()['output_transliteration']
         verbform = sanscript.transliterate(verbform, input_transliteration, 'slp1')
         fileofinterest = filepath(verbform)
-        validargs = ['jnu', 'uohyd', 'dhatupradipa', 'it_id', 'it_status', 'it_sutra', 'kshiratarangini', 'lakara', 'madhaviya', 'padadecider_id', 'padadecider_sutra', 'upasarga', 'verb', 'gana', 'meaning', 'number', 'verbslp', 'purusha', 'vachana', 'upasarga', 'suffix']
+        validargs = ['jnu', 'uohyd', 'dhatupradipa', 'it_id', 'it_status', 'it_sutra', 'kshiratarangini', 'lakara', 'madhaviya', 'padadecider_id', 'padadecider_sutra', 'upasarga', 'verbaccent', 'gana', 'meaning', 'number', 'verb', 'purusha', 'vachana', 'upasarga', 'suffix']
         if argument not in validargs:
-            return {'error': 'argument is invalid. It can take only "jnu", "uohyd", "dhatupradipa", "it_id", "it_status", "it_sutra", "kshiratarangini", "lakara", "madhaviya", "padadecider_id", "padadecider_sutra", "upasarga", "verb", "gana", "meaning", "number", "verbslp", "purusha", "vachana", "upasarga", "suffix" values.'}
-        argument = maparguments(argument)
+            return {'error': 'argument is invalid. It can take only jnu, uohyd, dhatupradipa, it_id, it_status, it_sutra, kshiratarangini, lakara, madhaviya, padadecider_id, padadecider_sutra, upasarga, verbaccent, gana, meaning, number, verb, purusha, vachana, upasarga, suffix values.'}
         with open(fileofinterest, 'r') as fin:
             verbdata = json.load(fin)
             tmp = []
             for datum in verbdata:
                 item = datum[argument]
-                if argument in ['gana', 'padadecider_id', 'padadecider_sutra', 'number', 'meaning', 'lakAra', 'input', 'it_status', 'it_sutra', 'purusha', 'vachana', 'upasarga', 'suffix']:
-                    if argument == 'input':
+                if argument in ['gana', 'padadecider_id', 'padadecider_sutra', 'number', 'meaning', 'lakara', 'verb', 'it_status', 'it_sutra', 'purusha', 'vachana', 'upasarga', 'suffix']:
+                    if argument == 'verb':
                         item = item.replace('!', '~')
                     tmp.append(sanscript.transliterate(item, 'slp1', output_transliteration))
                 else:
