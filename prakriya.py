@@ -25,7 +25,7 @@ storagedirectory = '/var/www/html/sanskritworldflask/'
 
 
 class prakriya():
-    u"""Generate a prakriya class.
+    r"""Generate a prakriya class.
 
     Parameters
     ----------
