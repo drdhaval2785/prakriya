@@ -136,10 +136,18 @@ class SpecificInfo(Resource):
         "it_sutra" - Returns rule number if iDAgama is caused by some special rule.
         """
         output_transliteration = self.get_parser.parse_args()['output_transliteration']
-        return jsonify(wholedata(verbform,
-                                 input_transliteration,
-                                 output_transliteration,
-                                 argument))
+        validArgs = ['verb', 'verbaccent', 'lakara', 'purusha', 'vachana',
+                     'suffix', 'gana', 'meaning', 'number', 'madhaviya',
+                     'kshiratarangini', 'dhatupradipa', 'jnu', 'uohyd',
+                     'upasarga', 'padadecider_id', 'padadecider_sutra',
+                     'it_id', 'it_status', 'it_sutra']
+        if argument not in validArgs:
+            return jsonify({'error': 'Not a valid argument.'})
+        else:
+            return jsonify(wholedata(verbform,
+                                     input_transliteration,
+                                     output_transliteration,
+                                     argument))
 
 
 @app.errorhandler(404)
