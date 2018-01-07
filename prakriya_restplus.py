@@ -24,6 +24,15 @@ api = Api(app, version=apiversion, title=u'Prakriyāpradarśinī API', descripti
 storagedirectory = '/var/www/html/sanskritworldflask/'
 
 
+def wholedata(verbform, inTran='slp1', outTran='slp1', argument=''):
+    """Fetch the whole data from prakriya package."""
+    p = Prakriya()
+    p.inputTranslit(inTran)
+    p.outputTranslit(outTran)
+    result = p[verbform, argument]
+    return result
+
+
 @api.route('/' + apiversion + '/verbforms/<string:input_transliteration>/<string:verbform>')
 @api.doc(params={'verbform': 'Verb form to be examined.', 'input_transliteration': 'devanagari/slp1/iast/hk/wx/itrans/kolkata/velthuis'})
 class FullData(Resource):
@@ -43,11 +52,9 @@ class FullData(Resource):
         See https://github.com/drdhaval2785/SanskritVerb/blob/master/jsongenerator.sh for details.
         """
         output_transliteration = self.get_parser.parse_args()['output_transliteration']
-        p = Prakriya()
-        p.inputTranslit(input_transliteration)
-        p.outputTranslit(output_transliteration)
-        result = p[verbform]
-        return jsonify(result)
+        return jsonify(wholedata(verbform,
+                                 input_transliteration,
+                                 output_transliteration))
 
 
 @api.route('/' + apiversion + '/verbforms/<string:input_transliteration>/<string:verbform>/prakriya')
@@ -75,11 +82,9 @@ class GetPrakriya(Resource):
         See https://github.com/drdhaval2785/prakriya/blob/master/data/sutrainfo.json.
         """
         output_transliteration = self.get_parser.parse_args()['output_transliteration']
-        p = Prakriya()
-        p.inputTranslit(input_transliteration)
-        p.outputTranslit(output_transliteration)
-        result = p[verbform, 'prakriya']
-        return jsonify(result)
+        return jsonify(wholedata(verbform,
+                                 input_transliteration,
+                                 output_transliteration))
 
 
 @api.route('/' + apiversion + '/verbforms/<string:input_transliteration>/<string:verbform>/<string:argument>')
@@ -137,11 +142,9 @@ class SpecificInfo(Resource):
         "it_sutra" - Returns rule number if iDAgama is caused by some special rule.
         """
         output_transliteration = self.get_parser.parse_args()['output_transliteration']
-        p = Prakriya()
-        p.inputTranslit(input_transliteration)
-        p.outputTranslit(output_transliteration)
-        result = p[verbform, argument]
-        return jsonify(result)
+        return jsonify(wholedata(verbform,
+                                 input_transliteration,
+                                 output_transliteration))
 
 
 @app.errorhandler(404)
