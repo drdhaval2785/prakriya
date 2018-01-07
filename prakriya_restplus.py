@@ -4,15 +4,12 @@
 
 See api.sanskritworld.in for documentation.
 Author - Dr. Dhaval Patel
-Date - 16 December 2017
+Date - 07 January 2018
 email - drdhaval2785@gmail.com
 """
 from flask import Flask, jsonify
 from flask_restplus import Api, Resource, reqparse
 from flask_cors import CORS
-import os
-import json
-from indic_transliteration import sanscript
 from prakriya import Prakriya
 
 
@@ -67,11 +64,7 @@ class GetPrakriya(Resource):
 
     @api.expect(get_parser, validate=True)
     def get(self, verbform, input_transliteration):
-        """Return human readable derivation of a given verb form.
-
-        This function converts the derivation data into human readable form.
-        Typical line is 'Paninian rule (rule number) -> state of the verb form'.
-        e.g. 'sArvaDAtukArDaDAtukayoH (7.3.84) -> Bo+a+tas'.
+        """Return step by step derivation of a given verb form.
 
         Dependencies
 
