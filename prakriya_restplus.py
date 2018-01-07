@@ -77,7 +77,8 @@ class GetPrakriya(Resource):
         output_transliteration = self.get_parser.parse_args()['output_transliteration']
         return jsonify(wholedata(verbform,
                                  input_transliteration,
-                                 output_transliteration))
+                                 output_transliteration,
+                                 argument='prakriya'))
 
 
 @api.route('/' + apiversion + '/verbforms/<string:input_transliteration>/<string:verbform>/<string:argument>')
@@ -137,7 +138,8 @@ class SpecificInfo(Resource):
         output_transliteration = self.get_parser.parse_args()['output_transliteration']
         return jsonify(wholedata(verbform,
                                  input_transliteration,
-                                 output_transliteration))
+                                 output_transliteration,
+                                 argument))
 
 
 @app.errorhandler(404)

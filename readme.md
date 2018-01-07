@@ -1,8 +1,6 @@
-# version
+# v0.0.1 - Baby steps
 
-v0.0.1 - Baby steps
-
-# Usage
+## Usage
 
 1. api.sanskritworld.in/v0.0.1/verbform/verb
 2. api.sanskritworld.in/v0.0.1/verbform/meaning
@@ -25,5 +23,3 @@ v0.0.1 - Baby steps
 19. api.sanskritworld.in/v0.0.1/verbform/prakriya
 20. api.sanskritworld.in/v0.0.1/verbform/prakriya/machine
 21. api.sanskritworld.in/v0.0.1/verbform
-
-
