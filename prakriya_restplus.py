@@ -17,7 +17,7 @@ app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 CORS(app)
 apiversion = 'v0.0.2'
-api = Api(app, version=apiversion, title=u'Prakriyāpradarśinī API', description='Describes step by step verb form generation according to Paninian grammar. Please report any issues <a href="https://github.com/drdhaval2785/prakriya/issues">here</a>. For more details, please see the github projects for <a href="https://github.com/drdhaval2785/SanskritVerb">SanskritVerb</a> and <a href="https://github.com/drdhaval2785/prakriya">prakriya</a>.')
+api = Api(app, version=apiversion, title=u'Prakriyāpradarśinī API', description='Describes step by step verb form generation according to Paninian grammar. For more user friendly experience, please visit <a href="https://avinashvarna.github.io/prakriya/" target="_blank">this page</a> by Avinash Varna. Please report any issues <a href="https://github.com/drdhaval2785/prakriya/issues">here</a>. For more details, please see the github projects for <a href="https://github.com/drdhaval2785/SanskritVerb">SanskritVerb</a> and <a href="https://github.com/drdhaval2785/prakriya">prakriya</a>.')
 storagedirectory = '/var/www/html/sanskritworldflask/'
 
 
