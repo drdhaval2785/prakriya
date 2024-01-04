@@ -28,7 +28,7 @@ def wholedata(verbform, inTran='slp1', outTran='slp1', argument=''):
     p = Prakriya()
     p.input_translit(inTran)
     p.output_translit(outTran)
-    verbform = htmlunescape(verbform).encode('utf-8')
+    verbform = htmlunescape(verbform)
     result = p.get_info(verbform, argument)
     return result
 
