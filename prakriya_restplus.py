@@ -4,7 +4,7 @@
 
 See api.sanskritworld.in for documentation.
 Author - Dr. Dhaval Patel
-Date - 07 January 2018
+Date - 04 January 2023
 email - drdhaval2785@gmail.com
 """
 from flask import Flask, jsonify
@@ -26,10 +26,10 @@ storagedirectory = '/var/www/html/sanskritworldflask/'
 def wholedata(verbform, inTran='slp1', outTran='slp1', argument=''):
     """Fetch the whole data from prakriya package."""
     p = Prakriya()
-    p.inputTranslit(inTran)
-    p.outputTranslit(outTran)
+    p.input_translit(inTran)
+    p.output_translit(outTran)
     verbform = htmlunescape(verbform).encode('utf-8')
-    result = p[verbform, argument]
+    result = p.get_info(verbform, argument)
     return result
 
 
