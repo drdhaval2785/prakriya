@@ -8,12 +8,10 @@ Date - 07 January 2018
 email - drdhaval2785@gmail.com
 """
 from flask import Flask, jsonify
-from flask_restplus import Api, Resource, reqparse
+#from flask_restplus import Api, Resource, reqparse
+from flask_restx import Api, Resource, reqparse
 from flask_cors import CORS
-try:
-    from HTMLParser import HTMLParser
-except ImportError:
-    from html.parser import HTMLParser
+import html
 from prakriya import Prakriya
 
 
@@ -37,8 +35,7 @@ def wholedata(verbform, inTran='slp1', outTran='slp1', argument=''):
 
 # https://stackoverflow.com/questions/2087370/decode-html-entities-in-python-string
 def htmlunescape(htmlencodedstring):
-    h = HTMLParser()
-    return h.unescape(htmlencodedstring)
+    return html.unescape(htmlencodedstring)
 
 
 @api.route('/' + apiversion + '/verbforms/<string:input_transliteration>/<string:verbform>')
